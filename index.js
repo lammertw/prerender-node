@@ -166,15 +166,9 @@ prerender.shouldShowPrerenderedPage = function(req) {
   return isRequestingPrerenderedPage;
 };
 
-
 prerender.prerenderServerRequestOptions = {};
 
-prerender.getPrerenderedPageResponse = function(req, callback) {
-  var options = {
-    uri: url.parse(prerender.buildApiUrl(req)),
-    followRedirect: false,
-    headers: {}
-  };
+prerender.addHeaders = function(req, options) {
   for (var attrname in this.prerenderServerRequestOptions) { options[attrname] = this.prerenderServerRequestOptions[attrname]; }
   if (this.forwardHeaders === true) {
     Object.keys(req.headers).forEach(function(h) {
@@ -190,6 +184,30 @@ prerender.getPrerenderedPageResponse = function(req, callback) {
   if(this.prerenderToken || process.env.PRERENDER_TOKEN) {
     options.headers['X-Prerender-Token'] = this.prerenderToken || process.env.PRERENDER_TOKEN;
   }
+};
+
+prerender.updatePrerenderPage = function(req, path, callback) {
+  var options = {
+    uri: url.parse(prerender.buildApiUrl(req, path)),
+    followRedirect: false,
+    headers: {}
+  };
+
+  this.addHeaders(req, options);
+
+  var r = request.post(options);
+  if (callback) {
+    r.on('response', callback).on('error', callback);
+  }
+};
+
+prerender.getPrerenderedPageResponse = function(req, callback) {
+  var options = {
+    uri: url.parse(prerender.buildApiUrl(req)),
+    followRedirect: false,
+    headers: {}
+  };
+  this.addHeaders(req, options);
 
   request.get(options).on('response', function(response) {
     if(response.headers['content-encoding'] && response.headers['content-encoding'] === 'gzip') {
@@ -235,7 +253,7 @@ prerender.plainResponse = function(response, callback) {
 };
 
 
-prerender.buildApiUrl = function(req) {
+prerender.buildApiUrl = function(req, path) {
   var prerenderUrl = prerender.getPrerenderServiceUrl();
   var forwardSlash = prerenderUrl.indexOf('/', prerenderUrl.length - 1) !== -1 ? '' : '/';
 
@@ -250,7 +268,7 @@ prerender.buildApiUrl = function(req) {
   if (this.protocol) {
     protocol = this.protocol;
   }
-  var fullUrl = protocol + "://" + (this.host || req.headers['x-forwarded-host'] || req.headers['host']) + req.url;
+  var fullUrl = protocol + "://" + (this.host || req.headers['x-forwarded-host'] || req.headers['host']) + (path || req.url);
   return prerenderUrl + forwardSlash + fullUrl;
 };
 
