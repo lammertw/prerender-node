@@ -43,7 +43,12 @@ prerender.crawlerUserAgents = [
   'showyoubot',
   'outbrain',
   'pinterest',
-  'developers.google.com/+/web/snippet'
+  'developers.google.com/+/web/snippet',
+  'slackbot',
+  'vkShare',
+  'W3C_Validator',
+  'redditbot',
+  'Applebot'
 ];
 
 
@@ -85,7 +90,9 @@ prerender.extensionsToIgnore = [
   '.iso',
   '.flv',
   '.m4v',
-  '.torrent'
+  '.torrent',
+  '.woff',
+  '.ttf'
 ];
 
 
